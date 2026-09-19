@@ -1,0 +1,11 @@
+volunteer_id,full_name,email,phone,vehicle_type,vehicle_capacity_kg,city,is_available,rating_average,total_deliveries,created_at
+1,"Ravi Sharma",vol1@test.com,9845670001,van,150.00,Mumbai,0,4.50,120,"2026-09-19 10:28:16"
+2,"Sunita Devi",vol2@test.com,9845670002,scooter,25.00,Mumbai,1,4.80,95,"2026-09-19 10:28:16"
+3,"Amit Kumar",vol3@test.com,9845670003,bike,10.00,Mumbai,0,3.90,45,"2026-09-19 10:28:16"
+4,"Kavita Patil",vol4@test.com,9845670004,van,200.00,Mumbai,1,4.70,210,"2026-09-19 10:28:16"
+5,"Rajesh Gupta",vol5@test.com,9845670005,car,80.00,Mumbai,1,4.20,75,"2026-09-19 10:28:16"
+6,"Arun Iyer",vol6@test.com,9845670006,van,180.00,Bangalore,1,4.60,180,"2026-09-19 10:28:16"
+7,"Lakshmi Nair",vol7@test.com,9845670007,scooter,20.00,Bangalore,1,4.85,110,"2026-09-19 10:28:16"
+8,"Priya Nambiar",vol8@test.com,9845670008,bike,15.00,Bangalore,1,4.40,85,"2026-09-19 10:28:16"
+9,"Bala Krishnan",vol9@test.com,9845670009,car,85.00,Chennai,1,4.30,105,"2026-09-19 10:28:16"
+10,"Harpreet Singh",vol10@test.com,9845670010,truck,550.00,Chandigarh,1,4.90,350,"2026-09-19 10:28:16"

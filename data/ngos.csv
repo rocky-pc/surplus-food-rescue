@@ -1,0 +1,11 @@
+ngo_id,ngo_name,ngo_type,contact_person,email,phone,city,daily_capacity_meals,has_refrigeration,is_verified,created_at
+1,"SOS Children Village",orphanage,"Mary Joseph",ngo1@test.com,9876554001,Mumbai,500,1,1,"2026-09-19 10:28:16"
+2,"Mumbai Smile Shelter",shelter,"Ramesh Patel",ngo2@test.com,9876554002,Mumbai,300,1,1,"2026-09-19 10:28:16"
+3,"Bangalore Food Bank",community_kitchen,"Kavitha Rao",ngo3@test.com,9876554003,Bangalore,1000,1,1,"2026-09-19 10:28:16"
+4,"Chennai Hunger Relief",community_kitchen,"Lakshmi Narayanan",ngo4@test.com,9876554004,Chennai,800,1,1,"2026-09-19 10:28:16"
+5,"Pune Old Age Home",old_age_home,"Shanti Devi",ngo5@test.com,9876554005,Pune,200,1,1,"2026-09-19 10:28:16"
+6,"Hyderabad Hope",orphanage,"Salma Begum",ngo6@test.com,9876554006,Hyderabad,400,1,1,"2026-09-19 10:28:16"
+7,"Delhi Food for All",community_kitchen,"Arvind Kejriwal",ngo7@test.com,9876554007,Delhi,1200,0,1,"2026-09-19 10:28:16"
+8,"Kochi Shelter",shelter,"George Thomas",ngo8@test.com,9876554008,Kochi,150,1,1,"2026-09-19 10:28:16"
+9,"Chandigarh Child Care",orphanage,"Jaspreet Kaur",ngo9@test.com,9876554009,Chandigarh,250,1,1,"2026-09-19 10:28:16"
+10,"Ahmedabad Women Shelter",women_shelter,"Hansa Ben",ngo10@test.com,9876554010,Ahmedabad,180,1,1,"2026-09-19 10:28:16"

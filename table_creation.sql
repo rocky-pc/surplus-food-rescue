@@ -3,14 +3,14 @@
 -- PROJECT: Surplus Food Rescue & NGO Logistics Management
 -- Database : food_rescue_db
 -- ============================================================
-CREATE DATABASE IF NOT EXISTS food_rescue_db;
+DROP DATABASE IF EXISTS food_rescue_db;
+CREATE DATABASE food_rescue_db;
 USE food_rescue_db;
 
 -- ============================================================
--- CORE TABLES (7 tables for moderate complexity)
+-- CORE TABLES
 -- ============================================================
 
--- TABLE 1: Donors
 CREATE TABLE donors (
     donor_id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     donor_name      VARCHAR(150) NOT NULL,
@@ -23,7 +23,6 @@ CREATE TABLE donors (
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- TABLE 2: NGOs
 CREATE TABLE ngos (
     ngo_id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ngo_name            VARCHAR(150) NOT NULL,
@@ -38,7 +37,6 @@ CREATE TABLE ngos (
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- TABLE 3: Volunteers
 CREATE TABLE volunteers (
     volunteer_id       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     full_name          VARCHAR(100) NOT NULL,
@@ -53,7 +51,6 @@ CREATE TABLE volunteers (
     created_at         DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- TABLE 4: Donation_Batches
 CREATE TABLE donation_batches (
     batch_id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     donor_id              INT UNSIGNED NOT NULL,
@@ -70,7 +67,6 @@ CREATE TABLE donation_batches (
     CONSTRAINT fk_batch_donor FOREIGN KEY (donor_id) REFERENCES donors(donor_id) ON DELETE CASCADE
 );
 
--- TABLE 5: NGO_Demands
 CREATE TABLE ngo_demands (
     demand_id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ngo_id          INT UNSIGNED NOT NULL,
@@ -82,7 +78,6 @@ CREATE TABLE ngo_demands (
     CONSTRAINT fk_demand_ngo FOREIGN KEY (ngo_id) REFERENCES ngos(ngo_id) ON DELETE CASCADE
 );
 
--- TABLE 6: Dispatches
 CREATE TABLE dispatches (
     dispatch_id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     batch_id              INT UNSIGNED NOT NULL,
@@ -102,7 +97,6 @@ CREATE TABLE dispatches (
     CONSTRAINT fk_dispatch_ngo FOREIGN KEY (ngo_id) REFERENCES ngos(ngo_id) ON DELETE CASCADE
 );
 
--- TABLE 7: Quality_Compliance_Logs
 CREATE TABLE quality_compliance_logs (
     log_id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     batch_id        INT UNSIGNED NOT NULL,
@@ -119,8 +113,7 @@ CREATE TABLE quality_compliance_logs (
 );
 
 -- ============================================================
--- STORED PROCEDURE: sp_MatchDonationToNGO
--- Simplified: Matches a food batch to nearest verified NGO
+-- STORED PROCEDURES
 -- ============================================================
 DELIMITER $$
 
@@ -131,7 +124,6 @@ BEGIN
     DECLARE v_quantity_servings INT;
     DECLARE v_expiry DATETIME;
     DECLARE v_donor_city VARCHAR(100);
-
     DECLARE v_matched_ngo_id INT DEFAULT NULL;
     DECLARE v_matched_ngo_name VARCHAR(150);
 
@@ -168,13 +160,6 @@ BEGIN
         SELECT 'INFO: No matching NGO found in same city' AS result;
     END IF;
 END$$
-
-DELIMITER ;
-
--- ============================================================
--- STORED PROCEDURE: sp_CompleteDispatch
--- ============================================================
-DELIMITER $$
 
 CREATE PROCEDURE sp_CompleteDispatch(
     IN p_dispatch_id INT UNSIGNED,
@@ -224,8 +209,7 @@ END$$
 DELIMITER ;
 
 -- ============================================================
--- TRIGGER: trg_CheckFoodExpiry
--- Auto-flags expired or nearly expired food
+-- TRIGGERS
 -- ============================================================
 DELIMITER $$
 
@@ -246,14 +230,6 @@ BEGIN
     END IF;
 END$$
 
-DELIMITER ;
-
--- ============================================================
--- TRIGGER 2: trg_AfterDispatchAssigned
--- Auto-reserves batch and notifies volunteer
--- ============================================================
-DELIMITER $$
-
 CREATE TRIGGER trg_AfterDispatchAssigned
 AFTER INSERT ON dispatches
 FOR EACH ROW
@@ -272,100 +248,53 @@ END$$
 DELIMITER ;
 
 -- ============================================================
--- VIEWS (Simplified)
+-- VIEWS
 -- ============================================================
-
--- VIEW 1: Monthly Impact Summary
 CREATE OR REPLACE VIEW vw_MonthlyImpact AS
-SELECT
-    MONTH(created_at) AS month,
-    YEAR(created_at) AS year,
-    COUNT(DISTINCT dispatch_id) AS total_dispatches,
-    COUNT(DISTINCT batch_id) AS batches_delivered,
-    SUM(distance_km) AS total_km
+SELECT MONTH(created_at) AS month, YEAR(created_at) AS year,
+       COUNT(DISTINCT dispatch_id) AS total_dispatches,
+       COUNT(DISTINCT batch_id) AS batches_delivered,
+       SUM(distance_km) AS total_km
 FROM dispatches
 WHERE dispatch_status = 'delivered'
 GROUP BY YEAR(created_at), MONTH(created_at);
 
--- VIEW 2: Top Donors
 CREATE OR REPLACE VIEW vw_TopDonors AS
-SELECT
-    d.donor_id,
-    d.donor_name,
-    d.city,
-    COUNT(DISTINCT b.batch_id) AS total_batches,
-    SUM(b.quantity_servings) AS total_servings
+SELECT d.donor_id, d.donor_name, d.city,
+       COUNT(DISTINCT b.batch_id) AS total_batches,
+       SUM(b.quantity_servings) AS total_servings
 FROM donors d
 LEFT JOIN donation_batches b ON d.donor_id = b.donor_id
 GROUP BY d.donor_id, d.donor_name, d.city
 ORDER BY total_servings DESC;
 
--- VIEW 3: Volunteer Performance
 CREATE OR REPLACE VIEW vw_VolunteerPerformance AS
-SELECT
-    v.volunteer_id,
-    v.full_name,
-    v.vehicle_type,
-    v.city,
-    COUNT(d.dispatch_id) AS total_trips,
-    SUM(d.distance_km) AS total_km,
-    v.rating_average,
-    v.total_deliveries
+SELECT v.volunteer_id, v.full_name, v.vehicle_type, v.city,
+       COUNT(d.dispatch_id) AS total_trips,
+       SUM(d.distance_km) AS total_km,
+       v.rating_average, v.total_deliveries
 FROM volunteers v
 LEFT JOIN dispatches d ON v.volunteer_id = d.volunteer_id
 GROUP BY v.volunteer_id, v.full_name, v.vehicle_type, v.city, v.rating_average, v.total_deliveries;
 
--- VIEW 4: Urgent Expiry Alert
 CREATE OR REPLACE VIEW vw_ExpiryAlert AS
-SELECT
-    batch_id,
-    donor_id,
-    food_category,
-    quantity_servings,
-    expiry_datetime,
-    TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) AS minutes_left,
-    CASE
-        WHEN TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) <= 0 THEN 'Expired'
-        WHEN TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) <= 120 THEN 'Critical'
-        ELSE 'Warning'
-    END AS urgency
+SELECT batch_id, donor_id, food_category, quantity_servings,
+       expiry_datetime,
+       TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) AS minutes_left,
+       CASE
+           WHEN TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) <= 0 THEN 'Expired'
+           WHEN TIMESTAMPDIFF(MINUTE, NOW(), expiry_datetime) <= 120 THEN 'Critical'
+           ELSE 'Warning'
+       END AS urgency
 FROM donation_batches
 WHERE status IN ('available','reserved')
   AND expiry_datetime <= DATE_ADD(NOW(), INTERVAL 4 HOUR);
 
 -- ============================================================
--- INDEXES (Simple)
+-- INDEXES
 -- ============================================================
 CREATE INDEX idx_batch_status ON donation_batches(status, expiry_datetime);
 CREATE INDEX idx_dispatch_status ON dispatches(dispatch_status);
-
--- ============================================================
--- ACID TRANSACTION EXAMPLE
--- ============================================================
-START TRANSACTION;
-
--- Lock batch to prevent double-claiming
-SELECT batch_id, status
-FROM donation_batches
-WHERE batch_id = 1 AND status = 'available'
-FOR UPDATE;
-
--- Reserve the batch
-UPDATE donation_batches
-SET status = 'reserved'
-WHERE batch_id = 1 AND status = 'available';
-
--- Assign volunteer
-UPDATE volunteers
-SET is_available = FALSE
-WHERE volunteer_id = 1 AND is_available = TRUE;
-
--- Create dispatch
-INSERT INTO dispatches (batch_id, volunteer_id, ngo_id, pickup_address, pickup_datetime,
-                        delivery_address, delivery_datetime, dispatch_status)
-VALUES (1, 1, 1, '123 Main St', NOW(), '456 NGO St', DATE_ADD(NOW(), INTERVAL 2 HOUR), 'assigned');
-
-COMMIT;
 
 -- ============================================================
 -- Table creation complete
